@@ -8,6 +8,9 @@ Let me walk you through what I did in this project.
 
 My main goal here was to demonstrate the full GitOps workflow: defining my desired application state in Git, having ArgoCD continuously monitor that state, and then automatically synchronizing my Kubernetes cluster to match it. This covers everything from initial deployment to updates, handling errors, and performing rollbacks, all driven by Git commits
 
+## Want to follow along?
+If you'd like to perform these steps yourself and experience GitOps in action, feel free to fork this repository and follow the instructions provided. It's designed to be a hands-on guide!
+
 ## My Setup
 
 First off, I structured everything neatly in my local VS Code environment. All the Kubernetes manifest files, the ArgoCD application definition, and even some "broken" files for testing failures were set up in a clean directory.
@@ -18,7 +21,9 @@ My actual Kubernetes cluster ran on a **GCP (Google Cloud Platform) instance**. 
 
 You'll find a pretty straightforward structure here:
 
--   `apps/sample-app/`: This is where all the Kubernetes manifests for my sample Nginx application live. You'll see `deployment.yaml`, `service.yaml`, `namespace.yaml`, plus a `configmap.yaml` and even a `broken-deployment.yaml` (more on that later!).
+-   `apps/`: This directory contains all my application-related Kubernetes manifests.
+    -   `broken-deployment.yaml`: A deliberately "broken" deployment manifest used to simulate failures (it tries to pull a nonexistent image).
+    -   `sample-app/`: This subdirectory holds the Kubernetes manifests for my healthy sample Nginx application. You'll find `deployment.yaml`, `service.yaml`, `namespace.yaml`, and `configmap.yaml` here.
 -   `argocd-app.yaml`: This crucial file tells ArgoCD *how* to find and deploy my application from this very repository.
 
 ## The Journey: What I Did Step-by-Step
@@ -201,15 +206,57 @@ argocd app get sample-app --show-operation
 ### 6. Adding a ConfigMap and Customizing the App
 I took it a step further by using a ConfigMap to serve custom HTML.
 
-```
-# On my local machine (VS Code bash)
-# Modified apps/sample-app/deployment.yaml to mount the existing configmap.yaml as index.html
-# (Used a big 'cat' command to overwrite deployment.yaml, adding volume mounts and volumes)
 
+On my local machine (VS Code bash)
+Modified apps/sample-app/deployment.yaml to mount the existing configmap.yaml as index.html.
+Use this command to overwrite deployment.yaml with the new content, including volume mounts and volumes:
+```
+cat > apps/sample-app/deployment.yaml << 'EOF'
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: sample-app
+  labels:
+    app: sample-app
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: sample-app
+  template:
+    metadata:
+      labels:
+        app: sample-app
+    spec:
+      containers:
+      - name: sample-app
+        image: nginx:1.22
+        ports:
+        - containerPort: 80
+        resources:
+          requests:
+            memory: "64Mi"
+            cpu: "250m"
+          limits:
+            memory: "128Mi"
+            cpu: "500m"
+        volumeMounts:
+        - name: config-volume
+          mountPath: /usr/share/nginx/html/index.html
+          subPath: index.html
+      volumes:
+      - name: config-volume
+        configMap:
+          name: sample-app-config
+EOF
+```
+
+```
 git add . # Added the modified deployment.yaml
 git commit -m "Add ConfigMap and update deployment to use custom index.html"
 git push origin main
 ```
+
 
 ```
 # On my GCP instance terminal (observing the sync)
@@ -233,8 +280,8 @@ I intentionally introduced a bad deployment to see how ArgoCD handles errors.
 ```
 # On my local machine (VS Code bash)
 # Changed argocd-app.yaml to point to the 'broken-deployment.yaml' path:
+sed -i 's|path: apps/sample-app|path: apps/broken-deployment.yaml|' argocd-app.yaml
 
-sed -i 's|path: apps/sample-app|path: apps/sample-app/broken-deployment.yaml|' argocd-app.yaml
 git add argocd-app.yaml
 git commit -m "Introduce a broken deployment to demonstrate failure handling"
 git push origin main
@@ -257,8 +304,8 @@ The best part – fixing the problem by just changing Git back!
 ```
 # On my local machine (VS Code bash)
 # Reverted argocd-app.yaml back to the working path 'apps/sample-app':
+sed -i 's|path: apps/broken-deployment.yaml|path: apps/sample-app|' argocd-app.yaml
 
-sed -i 's|path: apps/sample-app/broken-deployment.yaml|path: apps/sample-app|' argocd-app.yaml
 git add argocd-app.yaml
 git commit -m "Revert: Point ArgoCD application back to the working sample-app path"
 git push origin main
