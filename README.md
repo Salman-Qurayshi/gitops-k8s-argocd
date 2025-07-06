@@ -1,6 +1,6 @@
-# GitOps with Kubernetes and ArgoCD: My Cloud-Native Journey
+# GitOps with Kubernetes and ArgoCD
 
-Hey there! So, this repository is basically my hands-on playground where I explored GitOps principles using Kubernetes and ArgoCD. It was super cool to see how changes in my Git repo automatically reflected in my Kubernetes cluster.
+Hey there! So, this repository is basically my hands-on project where I explored GitOps principles using Kubernetes and ArgoCD. It was super cool to see how changes in my Git repo automatically reflected in my Kubernetes cluster.
 
 Let me walk you through what I did in this project.
 
