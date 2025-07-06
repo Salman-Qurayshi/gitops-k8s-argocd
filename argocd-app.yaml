@@ -6,8 +6,7 @@ metadata:
 spec:
   project: default
   source:
-    # IMPORTANT: This will be updated later with your actual GitHub repo URL
-    repoURL: YOUR_GITHUB_REPO_URL_HERE
+    repoURL: https://github.com/Salman-Qurayshi/gitops-k8s-argocd.git
     targetRevision: HEAD
     path: apps/sample-app
   destination:
