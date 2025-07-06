@@ -1,0 +1,22 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: sample-app-config
+  namespace: sample-app
+data:
+  app.properties: |
+    environment=production
+    debug=false
+    max_connections=100
+  index.html: |
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <title>GitOps Demo App</title>
+    </head>
+    <body>
+        <h1>Welcome to GitOps Demo!</h1>
+        <p>This application was deployed using GitOps with ArgoCD.</p>
+        <p>Version: 2.0</p>
+    </body>
+    </html>
