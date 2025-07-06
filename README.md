@@ -160,7 +160,7 @@ pkill -f "kubectl port-forward -n sample-app" # Cleaned up test port-forward
 
 #### Application Details Tree
 This shows the complete structure of my deployed application within ArgoCD:
-![Application Details Tree](screenshots/Application Details Tree - Argo CD.png)
+![Application Details Tree](screenshots/Application-Details-Tree-ArgoCD.png)
 
 
 ### 5. Updating the Application (The Magic of GitOps!)
